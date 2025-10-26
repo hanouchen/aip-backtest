@@ -4,6 +4,7 @@ import math
 # TODO: Invest cash left over from previous purchases
 # TODO: Incorporate transaction costs and slippage
 
+
 def basic_aip(
     prices: pl.DataFrame,
     cash_deposit: pl.DataFrame,
@@ -20,6 +21,7 @@ def basic_aip(
 
     prices = (
         prices.with_columns(pl.col("Date").cast(pl.Date))
+        .with_columns(pl.col(tickers).fill_null(strategy="backward"))
         .select(["Date"] + tickers)
         .sort("Date")
     )
@@ -46,9 +48,7 @@ def basic_aip(
 
     # Calculate positions over time
     positions = (
-        shares_to_buy.with_columns(
-            total_invested=pl.col("cash_deposit").cum_sum()
-        )
+        shares_to_buy.with_columns(total_invested=pl.col("cash_deposit").cum_sum())
         .with_columns(
             [pl.col(f"{t}_buy").cum_sum().alias(f"{t}_cum_shares") for t in tickers]
         )
